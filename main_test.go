@@ -1,6 +1,7 @@
 package udm
 
 import (
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -60,7 +61,7 @@ func TestNew(t *testing.T) {
 	server := createHTTPServer(serverParams)
 	defer server.instance.Close()
 
-	udmConfig := UdmConfig{
+	udmConfig := HostInfo{
 		Address:  server.address,
 		Username: "test",
 		Password: "test",
@@ -75,7 +76,9 @@ func TestNew(t *testing.T) {
   			"message": "Invalid username or password"
 			}`
 		}
-		assert.Panics(t, func() { New(udmConfig) })
+		client, err := NewWithLogin(udmConfig)
+		assert.Nil(t, client)
+		assert.ErrorContains(t, err, "login error: 403 Forbidden")
 	})
 
 	t.Run("good credentials", func(t *testing.T) {
@@ -85,7 +88,8 @@ func TestNew(t *testing.T) {
 			return http.StatusOK, ""
 		}
 
-		client := New(udmConfig)
+		client, err := NewWithLogin(udmConfig)
+		assert.Nil(t, err)
 		assert.NotNil(t, client)
 	})
 
@@ -94,7 +98,9 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, "/api/auth/login", req.URL.Path)
 			return http.StatusInternalServerError, `{"bad":"json"`
 		}
-		assert.Panics(t, func() { New(udmConfig) })
+		client, err := NewWithLogin(udmConfig)
+		assert.Nil(t, client)
+		assert.ErrorContains(t, err, "login error: 500 Internal")
 	})
 }
 
@@ -110,23 +116,26 @@ func TestGetConfiguredClients(t *testing.T) {
 	server := createHTTPServer(serverParams)
 	defer server.instance.Close()
 
-	udmConfig := UdmConfig{
+	udmConfig := HostInfo{
 		Address:  server.address,
 		Username: "test",
 		Password: "test",
 		Site:     "default",
 	}
-	udmClient := New(udmConfig)
+	udmClient, err := NewWithLogin(udmConfig)
+	require.Nil(t, err)
 
-	t.Run("panics for bad json", func(t *testing.T) {
+	t.Run("returns error for bad json", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/proxy/network/api/s/default/stat/sta", req.URL.Path)
 			return http.StatusOK, `{"bad":"json"`
 		}
-		assert.Panics(t, func() { udmClient.GetActiveClients() })
+		clients, err := udmClient.GetActiveClients()
+		assert.Nil(t, clients)
+		assert.ErrorContains(t, err, "unexpected end of JSON input")
 	})
 
-	t.Run("panics for metadata error", func(t *testing.T) {
+	t.Run("returns error for metadata error", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/proxy/network/api/s/default/stat/sta", req.URL.Path)
 			return http.StatusOK, `{
@@ -136,7 +145,9 @@ func TestGetConfiguredClients(t *testing.T) {
 				}
 			}`
 		}
-		assert.PanicsWithError(t, "api error: foo bar", func() { udmClient.GetActiveClients() })
+		clients, err := udmClient.GetActiveClients()
+		assert.Nil(t, clients)
+		assert.ErrorContains(t, err, "api error: foo bar")
 	})
 
 	t.Run("returns network clients", func(t *testing.T) {
@@ -156,7 +167,8 @@ func TestGetConfiguredClients(t *testing.T) {
 			}`
 		}
 
-		networkClients := udmClient.GetActiveClients()
+		networkClients, err := udmClient.GetActiveClients()
+		assert.Nil(t, err)
 		assert.Equal(t, 1, len(networkClients))
 	})
 }
@@ -173,23 +185,26 @@ func TestGetActiveClients(t *testing.T) {
 	server := createHTTPServer(serverParams)
 	defer server.instance.Close()
 
-	udmConfig := UdmConfig{
+	udmConfig := HostInfo{
 		Address:  server.address,
 		Username: "test",
 		Password: "test",
 		Site:     "default",
 	}
-	udmClient := New(udmConfig)
+	udmClient, err := NewWithLogin(udmConfig)
+	require.Nil(t, err)
 
-	t.Run("panics for bad json", func(t *testing.T) {
+	t.Run("returns error for bad json", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/proxy/network/api/s/default/list/user", req.URL.Path)
 			return http.StatusOK, `{"bad":"json"`
 		}
-		assert.Panics(t, func() { udmClient.GetConfiguredClients() })
+		clients, err := udmClient.GetConfiguredClients()
+		assert.Nil(t, clients)
+		assert.ErrorContains(t, err, "unexpected end of JSON input")
 	})
 
-	t.Run("panics for metadata error", func(t *testing.T) {
+	t.Run("returns error for metadata error", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/proxy/network/api/s/default/list/user", req.URL.Path)
 			return http.StatusOK, `{
@@ -199,7 +214,9 @@ func TestGetActiveClients(t *testing.T) {
 				}
 			}`
 		}
-		assert.PanicsWithError(t, "api error: foo bar", func() { udmClient.GetConfiguredClients() })
+		clients, err := udmClient.GetConfiguredClients()
+		assert.Nil(t, clients)
+		assert.ErrorContains(t, err, "api error: foo bar")
 	})
 
 	t.Run("returns network clients", func(t *testing.T) {
@@ -219,7 +236,8 @@ func TestGetActiveClients(t *testing.T) {
 			}`
 		}
 
-		networkClients := udmClient.GetConfiguredClients()
+		networkClients, err := udmClient.GetConfiguredClients()
+		assert.Nil(t, err)
 		assert.Equal(t, 1, len(networkClients))
 	})
 }

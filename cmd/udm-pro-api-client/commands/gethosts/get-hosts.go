@@ -3,10 +3,10 @@ package gethosts
 import (
 	"fmt"
 	"github.com/MakeNowJust/heredoc"
+	"github.com/jsumners/udm-pro-api-client"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/app"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/config"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/slug"
-	"github.com/jsumners/udm-pro-api-client/pkg/udm"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -33,10 +33,17 @@ func New(app *app.CliApp) *cobra.Command {
 	return cmd
 }
 
-func run(client *udm.UdmClient, config *config.Configuration) error {
-	foundClients := client.GetConfiguredClients()
-	if !config.FixedOnly {
-		foundClients = append(foundClients, client.GetActiveClients()...)
+func run(client *udm.Client, config *config.Configuration) error {
+	foundClients, err := client.GetConfiguredClients()
+	if err != nil {
+		return err
+	}
+	if config.FixedOnly == false {
+		activeClients, err := client.GetActiveClients()
+		if err != nil {
+			return err
+		}
+		foundClients = append(foundClients, activeClients...)
 	}
 
 	networkClients := reduceNetworkClients(foundClients, config)

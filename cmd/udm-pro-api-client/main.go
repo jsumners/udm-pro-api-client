@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/jsumners/udm-pro-api-client"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/conf"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/gethosts"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/root"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/app"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/config"
-	"github.com/jsumners/udm-pro-api-client/pkg/udm"
 	"os"
 )
 
@@ -36,12 +36,17 @@ func initConfig() error {
 
 func initClient() error {
 	cfg := cliApp.Config
-	client := udm.New(udm.UdmConfig{
+	client, err := udm.NewWithLogin(udm.HostInfo{
 		Address:  cfg.Address,
 		Username: cfg.Username,
 		Password: cfg.Password,
 		Site:     cfg.Site,
 	})
+
+	if err != nil {
+		return err
+	}
+
 	cliApp.Client = client
 	return nil
 }

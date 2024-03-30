@@ -11,7 +11,8 @@ This is known to work with:
 
 The provided CLI tool supports the following commands:
 
-+ `get-hosts`: retrieves the connected devices and generates a hosts file
++ `get-hosts`: retrieves the connected devices and generates a hosts file.
+Permissions: "view".
 
 ## Configuration
 
