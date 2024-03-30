@@ -36,8 +36,8 @@ func main() {
 	outputRecords(networkClients)
 }
 
-// Reduce clients list into a map indexed by mac address and removing
-// any clients with invalid names or ip addresses.
+// reduceNetworkClients formats a clients list into a map indexed by mac address
+// and removes any clients with invalid names or ip addresses.
 func reduceNetworkClients(clients []udm.NetworkClient, config *config.Configuration) map[string]hostRecord {
 	networkClients := make(map[string]hostRecord)
 	lowercaseHostnames := config.LowercaseHostnames

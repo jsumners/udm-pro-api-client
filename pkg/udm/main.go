@@ -25,8 +25,7 @@ type UdmClient struct {
 	resty  resty.Client
 }
 
-// Represents the `meta` property in an
-// UDM API response.
+// ResponseMeta represents the `meta` property in a UDM API response.
 type ResponseMeta struct {
 	// Typically "ok".
 	Code    string `json:"rc"`
@@ -46,14 +45,14 @@ type NetworkClient struct {
 	Name           string `json:"name"`
 }
 
-// Represents the response sent when querying the
+// NetworkClientsResponse represents the response sent when querying the
 // UDM API for a list of network clients.
 type NetworkClientsResponse struct {
 	Meta ResponseMeta    `json:"meta"`
 	Data []NetworkClient `json:"data"`
 }
 
-// Instantiate a [udm.UdmClient] instance and return it.
+// New instantiates a [udm.UdmClient] instance and returns it.
 // The instance will be authenticated with the remote UDM server
 // and ready to issue requests. If there was a problem logging in,
 // a `panic` will be issued.
@@ -92,18 +91,18 @@ func (udm *UdmClient) login() {
 }
 
 func (udm *UdmClient) GetActiveClients() []NetworkClient {
-	return udm.getNeworkClients(
+	return udm.getNetworkClients(
 		fmt.Sprintf("/proxy/network/api/s/%s/stat/sta", udm.config.Site),
 	)
 }
 
 func (udm *UdmClient) GetConfiguredClients() []NetworkClient {
-	return udm.getNeworkClients(
+	return udm.getNetworkClients(
 		fmt.Sprintf("/proxy/network/api/s/%s/list/user", udm.config.Site),
 	)
 }
 
-func (udm *UdmClient) getNeworkClients(path string) []NetworkClient {
+func (udm *UdmClient) getNetworkClients(path string) []NetworkClient {
 	resp, err := udm.resty.R().Get(path)
 	if err != nil {
 		panic(err)
