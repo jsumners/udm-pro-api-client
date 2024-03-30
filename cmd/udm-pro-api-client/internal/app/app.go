@@ -6,6 +6,8 @@ import (
 )
 
 type CliApp struct {
-	Config *config.Configuration
-	Client *udm.Client
+	ConfigFilePath   string
+	Config           *config.Configuration
+	Client           *udm.Client
+	HttpDebugEnabled bool
 }
