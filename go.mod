@@ -1,4 +1,4 @@
-module udmproapiclient
+module github.com/jsumners/udm-pro-api-client
 
 go 1.22
 

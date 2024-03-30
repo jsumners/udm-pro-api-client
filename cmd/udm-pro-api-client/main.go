@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/jsumners/udm-pro-api-client/internal/config"
+	"github.com/jsumners/udm-pro-api-client/internal/slug"
+	"github.com/jsumners/udm-pro-api-client/pkg/udm"
 	"os"
 	"strings"
 	"text/tabwriter"
-	"udmproapiclient/internal/config"
-	"udmproapiclient/internal/slug"
-	"udmproapiclient/pkg/udm"
 )
 
 type hostRecord struct {
