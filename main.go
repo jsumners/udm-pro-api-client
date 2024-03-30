@@ -1,99 +1,62 @@
-package main
+package udm
 
 import (
+	"crypto/tls"
+	"errors"
 	"fmt"
-	"os"
-	"strings"
-	"text/tabwriter"
-	"udmproapiclient/pkg/config"
-	"udmproapiclient/pkg/slug"
-	"udmproapiclient/pkg/udm"
+	"github.com/go-resty/resty/v2"
 )
 
-type hostRecord struct {
-	macAddress string
-	name       string
-	ipAddress  string
-}
-
-func main() {
-	config := config.InitConfig()
-	udmClient := udm.New(udm.UdmConfig{
-		Address:  config.Address,
-		Username: config.Username,
-		Password: config.Password,
-		Site:     config.Site,
-	})
-
-	foundClients := udmClient.GetConfiguredClients()
-	if !config.FixedOnly {
-		foundClients = append(foundClients, udmClient.GetActiveClients()...)
+// New instantiates a [Client] instance and returns it.
+// The client will need to issue a [Client.Login] before any requests to the API
+// can be issued.
+func New(hostInfo HostInfo) (*Client, error) {
+	client := &Client{
+		hostInfo: hostInfo,
 	}
 
-	networkClients := reduceNetworkClients(foundClients, config)
+	client.resty = *resty.New()
+	client.resty.SetBaseURL(fmt.Sprintf("https://%s", hostInfo.Address))
+	client.resty.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
-	outputHostAliases(config.HostAliases)
-	outputRecords(networkClients)
+	return client, nil
 }
 
-// reduceNetworkClients formats a clients list into a map indexed by mac address
-// and removes any clients with invalid names or ip addresses.
-func reduceNetworkClients(clients []udm.NetworkClient, config *config.Configuration) map[string]hostRecord {
-	networkClients := make(map[string]hostRecord)
-	lowercaseHostnames := config.LowercaseHostnames
+// NewWithLogin instantiates a [Client] instance and returns it.
+// The instance will be authenticated with the remote UDM server
+// and ready to issue requests. If an issue occurs while authenticating
+// an error will be returned.
+func NewWithLogin(hostInfo HostInfo) (*Client, error) {
+	client, _ := New(hostInfo)
 
-	for _, networkClient := range clients {
-		name := networkClient.Name
-		if name == "" {
-			name = networkClient.Hostname
-		}
-		name = slug.Hostname(name)
-		if len(name) < 1 {
-			// It is possible that an entry has an empty string set for both
-			// "hostname" and "name" in the UDM data. In that case, there's not
-			// much we can do. We _could_ make up a name based on the MAC, or other
-			// data, but at this time, we just do not care.
-			continue
-		}
-		if lowercaseHostnames {
-			name = strings.ToLower(name)
-		}
-
-		ip := networkClient.IpAddress
-		if len(networkClient.FixedIpAddress) > 0 {
-			ip = networkClient.FixedIpAddress
-		}
-		if len(ip) < 1 {
-			continue
-		}
-
-		mac := networkClient.MacAddress
-
-		networkClients[mac] = hostRecord{
-			macAddress: mac,
-			name:       name,
-			ipAddress:  ip,
-		}
+	err := client.Login()
+	if err != nil {
+		return nil, err
 	}
 
-	return networkClients
+	return client, nil
 }
 
-func outputHostAliases(aliases []config.HostAlias) {
-	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
-	fmt.Fprint(tw, "# host aliases\n")
-	for _, v := range aliases {
-		fmt.Fprintf(tw, "%s\t%s", v.IpAddress, v.Name)
-	}
-	fmt.Fprint(tw, "\n\n")
-	tw.Flush()
-}
+// Login authenticates against the UDM. This must be done prior to issuing
+// any requests to the API.
+func (client *Client) Login() error {
+	payload := fmt.Sprintf(
+		`{"username":"%s","password":"%s"}`,
+		client.hostInfo.Username,
+		client.hostInfo.Password,
+	)
 
-func outputRecords(records map[string]hostRecord) {
-	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
-	fmt.Fprint(tw, "# UDM records\n")
-	for _, v := range records {
-		fmt.Fprintf(tw, "%s\t%s\t# %s\n", v.ipAddress, v.name, v.macAddress)
+	resp, err := client.resty.R().
+		SetHeader("content-type", "application/json").
+		SetBody(payload).
+		Post("/api/auth/login")
+
+	if err != nil {
+		return fmt.Errorf("failed to login: %w", err)
 	}
-	tw.Flush()
+	if resp.StatusCode() >= 400 {
+		return errors.New(fmt.Sprintf("login error: %s", resp.Status()))
+	}
+
+	return nil
 }
