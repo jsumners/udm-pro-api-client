@@ -2,6 +2,8 @@ package udm
 
 import "github.com/go-resty/resty/v2"
 
+type Option func(*Client) error
+
 // HostInfo describes the details needed to connect to the desired UDM.
 type HostInfo struct {
 	// Address is the IP address or hostname, e.g. "192.168.1.1" or
@@ -21,8 +23,14 @@ type HostInfo struct {
 }
 
 type Client struct {
-	hostInfo HostInfo
-	resty    resty.Client
+	hostInfo  HostInfo
+	resty     resty.Client
+	csrfToken string
+}
+
+type GenericResponse struct {
+	Meta ResponseMeta `json:"meta"`
+	Data []any        `json:"data"`
 }
 
 // ResponseMeta represents the `meta` property in a UDM API response.

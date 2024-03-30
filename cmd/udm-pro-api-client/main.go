@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jsumners/udm-pro-api-client"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/conf"
+	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/device"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/gethosts"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/root"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/app"
@@ -12,16 +13,16 @@ import (
 )
 
 var cliApp *app.CliApp
-var configFilePath string
 
 func main() {
 	cliApp = &app.CliApp{
 		Config: config.New(),
 	}
 
-	cmd := root.New(&configFilePath, initConfig, initClient)
+	cmd := root.New(cliApp, initConfig, initClient)
 	cmd.AddCommand(conf.New(cliApp))
 	cmd.AddCommand(gethosts.New(cliApp))
+	cmd.AddCommand(device.New(cliApp))
 
 	err := cmd.Execute()
 	if err != nil {
@@ -31,17 +32,24 @@ func main() {
 }
 
 func initConfig() error {
-	return cliApp.Config.InitConfig(configFilePath)
+	return cliApp.Config.InitConfig(cliApp.ConfigFilePath)
 }
 
 func initClient() error {
 	cfg := cliApp.Config
-	client, err := udm.NewWithLogin(udm.HostInfo{
+	options := make([]udm.Option, 0)
+
+	if cliApp.HttpDebugEnabled == true {
+		options = append(options, udm.WithHttpDebug())
+	}
+
+	hostInfo := udm.HostInfo{
 		Address:  cfg.Address,
 		Username: cfg.Username,
 		Password: cfg.Password,
 		Site:     cfg.Site,
-	})
+	}
+	client, err := udm.NewWithLogin(hostInfo, options...)
 
 	if err != nil {
 		return err

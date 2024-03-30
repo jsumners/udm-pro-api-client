@@ -12,7 +12,15 @@ This is known to work with:
 The provided CLI tool supports the following commands:
 
 + `get-hosts`: retrieves the connected devices and generates a hosts file.
-Permissions: "view".
+Required permissions: "View".
++ `device restart`: restarts a device managed by the UDM, e.g. a wireless access
+point. Required permissions: "Site Admin".
+
+See the `--help` output of individual commands for full usage details, e.g.:
+
+```sh
+$ udm-pro-api-client device restart --help
+```
 
 ## Configuration
 
