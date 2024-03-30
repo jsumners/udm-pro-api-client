@@ -1,11 +1,17 @@
 # udm-pro-api-client
 
 An API client for communicating with the [Unifi UDM-PRO][udm-pro].
-Currently, it only has functionality for querying the network app for the list
-of connected, and/or configured, clients and generating a hosts file
-representation of those entries.
 
-This is known to work with `UniFi OS UDM Pro 1.12.22` and `Network 7.1.68`.
+This is known to work with:
+
++ `UniFi OS 1.12.22` and `Network 7.1.68`
++ `UniFi OS 3.1.16` and `Network 8.0.7`
+
+## CLI Tool
+
+The provided CLI tool supports the following commands:
+
++ `get-hosts`: retrieves the connected devices and generates a hosts file
 
 ## Configuration
 
