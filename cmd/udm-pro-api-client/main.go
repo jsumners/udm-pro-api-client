@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/jsumners/udm-pro-api-client/internal/config"
+	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/conf"
+	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/commands/root"
+	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/app"
+	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/config"
 	"github.com/jsumners/udm-pro-api-client/internal/slug"
 	"github.com/jsumners/udm-pro-api-client/pkg/udm"
 	"os"
@@ -16,24 +19,44 @@ type hostRecord struct {
 	ipAddress  string
 }
 
-func main() {
-	config := config.InitConfig()
-	udmClient := udm.New(udm.UdmConfig{
-		Address:  config.Address,
-		Username: config.Username,
-		Password: config.Password,
-		Site:     config.Site,
-	})
+var cliApp *app.CliApp
+var configFilePath string
 
-	foundClients := udmClient.GetConfiguredClients()
-	if !config.FixedOnly {
-		foundClients = append(foundClients, udmClient.GetActiveClients()...)
+func main() {
+	cliApp = &app.CliApp{
+		Config: config.New(),
 	}
 
-	networkClients := reduceNetworkClients(foundClients, config)
+	cmd := root.New(&configFilePath, initConfig)
+	cmd.AddCommand(conf.New(cliApp))
 
-	outputHostAliases(config.HostAliases)
-	outputRecords(networkClients)
+	err := cmd.Execute()
+	if err != nil {
+		fmt.Printf("app error: %v\n", err)
+		os.Exit(1)
+	}
+
+	//config := config.InitConfig()
+	//udmClient := udm.New(udm.UdmConfig{
+	//	Address:  config.Address,
+	//	Username: config.Username,
+	//	Password: config.Password,
+	//	Site:     config.Site,
+	//})
+	//
+	//foundClients := udmClient.GetConfiguredClients()
+	//if !config.FixedOnly {
+	//	foundClients = append(foundClients, udmClient.GetActiveClients()...)
+	//}
+	//
+	//networkClients := reduceNetworkClients(foundClients, config)
+	//
+	//outputHostAliases(config.HostAliases)
+	//outputRecords(networkClients)
+}
+
+func initConfig() error {
+	return cliApp.Config.InitConfig(configFilePath)
 }
 
 // reduceNetworkClients formats a clients list into a map indexed by mac address

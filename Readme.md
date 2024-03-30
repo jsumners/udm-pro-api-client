@@ -21,6 +21,13 @@ be specified with the environment variable `API_CLIENT_CONFIG_FILE`, e.g.:
 ```sh
 $ API_CLIENT_CONFIG_FILE=/opt/api-client.yaml udm-pro-api-client
 ```
+The configuration file can also be specified with a flag:
+
+```sh
+$ udm-pro-api-client --conf-file ./config.yaml
+# or
+$ udm-pro-api-client -c ./config.yaml
+```
 
 A full configuration in yaml is:
 
