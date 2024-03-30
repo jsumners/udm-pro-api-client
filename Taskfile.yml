@@ -6,7 +6,7 @@ version: "3"
 tasks:
   build:
     cmds:
-      - go build -o ./build/udm-pro-api-client
+      - go build -o ./build/udm-pro-api-client ./cmd/udm-pro-api-client
     sources:
       - "**/*.go"
 

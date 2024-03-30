@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
-	"udmproapiclient/pkg/config"
-	"udmproapiclient/pkg/slug"
+	"udmproapiclient/internal/config"
+	"udmproapiclient/internal/slug"
 	"udmproapiclient/pkg/udm"
 )
 
