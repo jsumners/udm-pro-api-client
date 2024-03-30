@@ -7,23 +7,23 @@ import (
 )
 
 type HostAlias struct {
-	Name string
+	Name      string
 	IpAddress string `mapstructure:"ip_address"`
 }
 
 type Configuration struct {
-	Address string
+	Address  string
 	Username string
 	Password string
-	Site string
+	Site     string
 
-	FixedOnly bool `mapstructure:"fixed_only"`
+	FixedOnly          bool `mapstructure:"fixed_only"`
 	LowercaseHostnames bool `mapstructure:"lowercase_hostnames"`
 
 	HostAliases []HostAlias `mapstructure:"host_aliases"`
 }
 
-func InitConfig () *Configuration {
+func InitConfig() *Configuration {
 	v := viper.New()
 
 	v.SetConfigName("udm-pro-api-client")

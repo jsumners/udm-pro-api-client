@@ -11,12 +11,12 @@ import (
 
 type testServer struct {
 	instance *httptest.Server
-	address string
+	address  string
 }
 
 type httpAssertionCallback func(req *http.Request, body string) (int, string)
 type testServerParams struct {
-	t *testing.T
+	t                  *testing.T
 	assertionsCallback httpAssertionCallback
 }
 
@@ -42,7 +42,7 @@ func createHTTPServer(params *testServerParams) testServer {
 
 	server := testServer{
 		instance: httpServer,
-		address: httpServer.Listener.Addr().String(),
+		address:  httpServer.Listener.Addr().String(),
 	}
 
 	return server
@@ -61,13 +61,13 @@ func TestNew(t *testing.T) {
 	defer server.instance.Close()
 
 	udmConfig := UdmConfig{
-		Address: server.address,
+		Address:  server.address,
 		Username: "test",
 		Password: "test",
-		Site: "default",
+		Site:     "default",
 	}
 
-	t.Run("bad credentials", func (t *testing.T) {
+	t.Run("bad credentials", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/api/auth/login", req.URL.Path)
 			return http.StatusForbidden, `{
@@ -78,7 +78,7 @@ func TestNew(t *testing.T) {
 		assert.Panics(t, func() { New(udmConfig) })
 	})
 
-	t.Run("good credentials", func (t *testing.T) {
+	t.Run("good credentials", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/api/auth/login", req.URL.Path)
 			assert.Equal(t, body, `{"username":"test","password":"test"}`)
@@ -89,7 +89,7 @@ func TestNew(t *testing.T) {
 		assert.NotNil(t, client)
 	})
 
-	t.Run("server error", func (t *testing.T) {
+	t.Run("server error", func(t *testing.T) {
 		serverParams.assertionsCallback = func(req *http.Request, body string) (int, string) {
 			assert.Equal(t, "/api/auth/login", req.URL.Path)
 			return http.StatusInternalServerError, `{"bad":"json"`
@@ -111,10 +111,10 @@ func TestGetConfiguredClients(t *testing.T) {
 	defer server.instance.Close()
 
 	udmConfig := UdmConfig{
-		Address: server.address,
+		Address:  server.address,
 		Username: "test",
 		Password: "test",
-		Site: "default",
+		Site:     "default",
 	}
 	udmClient := New(udmConfig)
 
@@ -174,10 +174,10 @@ func TestGetActiveClients(t *testing.T) {
 	defer server.instance.Close()
 
 	udmConfig := UdmConfig{
-		Address: server.address,
+		Address:  server.address,
 		Username: "test",
 		Password: "test",
-		Site: "default",
+		Site:     "default",
 	}
 	udmClient := New(udmConfig)
 

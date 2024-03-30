@@ -12,17 +12,17 @@ import (
 
 type hostRecord struct {
 	macAddress string
-	name string
-	ipAddress string
+	name       string
+	ipAddress  string
 }
 
 func main() {
 	config := config.InitConfig()
 	udmClient := udm.New(udm.UdmConfig{
-		Address: config.Address,
+		Address:  config.Address,
 		Username: config.Username,
 		Password: config.Password,
-		Site: config.Site,
+		Site:     config.Site,
 	})
 
 	foundClients := udmClient.GetConfiguredClients()
@@ -71,8 +71,8 @@ func reduceNetworkClients(clients []udm.NetworkClient, config *config.Configurat
 
 		networkClients[mac] = hostRecord{
 			macAddress: mac,
-			name: name,
-			ipAddress: ip,
+			name:       name,
+			ipAddress:  ip,
 		}
 	}
 

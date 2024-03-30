@@ -9,10 +9,10 @@ import (
 )
 
 type UdmConfig struct {
-	Address string `mapstructure:"address"`
+	Address  string `mapstructure:"address"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
-	Site string `mapstructure:"site"`
+	Site     string `mapstructure:"site"`
 }
 
 type IUdmClient interface {
@@ -22,14 +22,14 @@ type IUdmClient interface {
 
 type UdmClient struct {
 	config UdmConfig
-	resty resty.Client
+	resty  resty.Client
 }
 
 // Represents the `meta` property in an
 // UDM API response.
 type ResponseMeta struct {
 	// Typically "ok".
-	Code string `json:"rc"`
+	Code    string `json:"rc"`
 	Message string `json:"msg"`
 
 	// TODO: I believe a `count` can also be returned
@@ -39,17 +39,17 @@ type ResponseMeta struct {
 }
 
 type NetworkClient struct {
-	Hostname string `json:"hostname"`
+	Hostname       string `json:"hostname"`
 	FixedIpAddress string `json:"fixed_ip"`
-	IpAddress string `json:"ip"`
-	MacAddress string `json:"mac"`
-	Name string `json:"name"`
+	IpAddress      string `json:"ip"`
+	MacAddress     string `json:"mac"`
+	Name           string `json:"name"`
 }
 
 // Represents the response sent when querying the
 // UDM API for a list of network clients.
 type NetworkClientsResponse struct {
-	Meta ResponseMeta `json:"meta"`
+	Meta ResponseMeta    `json:"meta"`
 	Data []NetworkClient `json:"data"`
 }
 

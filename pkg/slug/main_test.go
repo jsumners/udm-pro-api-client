@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func  TestHostname(t *testing.T) {
+func TestHostname(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.Equal("foo-bar", Hostname("foo bar"))
