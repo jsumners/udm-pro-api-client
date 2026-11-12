@@ -2,15 +2,17 @@ package gethosts
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"text/tabwriter"
+
 	"github.com/MakeNowJust/heredoc"
 	"github.com/jsumners/udm-pro-api-client"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/app"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/config"
 	"github.com/jsumners/udm-pro-api-client/cmd/udm-pro-api-client/internal/slug"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
-	"text/tabwriter"
 )
 
 func New(app *app.CliApp) *cobra.Command {
@@ -48,7 +50,7 @@ func run(client *udm.Client, config *config.Configuration) error {
 
 	networkClients := reduceNetworkClients(foundClients, config)
 
-	outputHostAliases(config.HostAliases)
+	outputHostAliases(config.HostAliases, os.Stdout)
 	outputRecords(networkClients)
 
 	return nil
@@ -103,13 +105,13 @@ func reduceNetworkClients(clients []udm.NetworkClient, config *config.Configurat
 	return networkClients
 }
 
-func outputHostAliases(aliases []config.HostAlias) {
-	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
+func outputHostAliases(aliases []config.HostAlias, dest io.Writer) {
+	tw := tabwriter.NewWriter(dest, 0, 8, 1, '\t', tabwriter.AlignRight)
 	fmt.Fprint(tw, "# host aliases\n")
 	for _, v := range aliases {
-		fmt.Fprintf(tw, "%s\t%s", v.IpAddress, v.Name)
+		fmt.Fprintf(tw, "%s\t%s\n", v.IpAddress, v.Name)
 	}
-	fmt.Fprint(tw, "\n\n")
+	fmt.Fprint(tw, "\n")
 	tw.Flush()
 }
 
